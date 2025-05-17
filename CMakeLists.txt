@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 project(mpack_cpp VERSION 0.1.0 LANGUAGES C CXX)
 
+###############################################################################
+# Project configuration
+###############################################################################
 cmake_policy(SET CMP0135 NEW)
-
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,6 +15,9 @@ endif()
 
 option(MPACK_CPP_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
+###############################################################################
+# Download and define mpack as a shared library target. 
+###############################################################################
 include(FetchContent)
 fetchcontent_declare(
   mpack
@@ -33,11 +37,13 @@ target_compile_definitions(mpack PUBLIC
   MPACK_STDIO=1
 )
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_definitions(mpack PUBLIC
-    MPACK_DEBUG=1
-  )
+  target_compile_definitions(mpack PUBLIC MPACK_DEBUG=1)
 endif()
 
+
+###############################################################################
+# Define mpack_cpp as a header only library. 
+###############################################################################
 add_library(mpack_cpp INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -45,6 +51,10 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_libraries(mpack_cpp INTERFACE mpack)
 
+
+###############################################################################
+# Tests 
+###############################################################################
 if(MPACK_CPP_BUILD_TESTS)
     # https://google.github.io/googletest/quickstart-cmake.html
     include(FetchContent)
@@ -63,6 +73,7 @@ if(MPACK_CPP_BUILD_TESTS)
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
         tests/test_nested_struct.cpp
+        tests/test_custom_allocator.cpp
     )
     target_link_libraries(
         test_mpack_cpp

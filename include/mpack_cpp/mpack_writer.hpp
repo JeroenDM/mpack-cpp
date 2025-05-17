@@ -13,6 +13,12 @@
 namespace mpack_cpp {
 namespace internal {
 
+/** Main type selection visitor to encode values.
+ *
+ * In contrast other MessagePack encoders, integers are written to fixed int types based
+ * on the C++ type, not based on there value. This can result in larger message size.
+ *
+ */
 struct WriteVisitor {
     mpack_writer_t& writer;
 
@@ -36,8 +42,14 @@ struct WriteVisitor {
                          static_cast<std::uint32_t>(value.size()));
     }
 
-    template <typename ElemT>
-    void operator()(const std::vector<ElemT>& vec) {
+    template <typename CharT, typename Traits, typename Allocator>
+    void operator()(const std::basic_string<CharT, Traits, Allocator>& value) {
+        mpack_write_utf8(&writer, value.c_str(),
+                         static_cast<std::uint32_t>(value.size()));
+    }
+
+    template <typename ElemT, typename AllocT>
+    void operator()(const std::vector<ElemT, AllocT>& vec) {
         mpack_start_array(&writer, static_cast<std::uint32_t>(vec.size()));
         for (const auto& elem : vec) {
             // Recursively process each element in the vector.
