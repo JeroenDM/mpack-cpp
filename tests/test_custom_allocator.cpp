@@ -57,9 +57,6 @@ struct Zoo {
 }  // namespace
 
 TEST(custom_allocator, string_and_vector) {
-    // std::pmr::set_default_resource(std::pmr::null_memory_resource());
-    // std::pmr::memory_resource* alloc = std::pmr::new_delete_resource();
-
     std::array<std::uint8_t, 1000> arena_buffer{0};
     std::pmr::monotonic_buffer_resource arena{arena_buffer.data(), arena_buffer.size(),
                                               std::pmr::null_memory_resource()};

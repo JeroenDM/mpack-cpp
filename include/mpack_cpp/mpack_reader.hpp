@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
-#include <memory_resource>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -30,6 +29,18 @@ void read_and_assign(std::variant<Args...>& variant, T (*reader_func)(mpack_read
     }
 }
 
+/** Main type selection visitor for decoding values.
+ *
+ * To allow for costum allocation strategies for the destination type,
+ * the following overloads are generic with respect to their allocator type:
+ *   - `std::basic_string` (std::string, std::pmr::string, ...)
+ *   - `std::vector`
+ *
+ * TODO(jeroedm)?
+ *  - std::map
+ *  - std::unordered_map
+ *
+ */
 struct ReadVisitor {
     mpack_reader_t& reader;
 
@@ -38,6 +49,7 @@ struct ReadVisitor {
     void operator()(float& out) { out = mpack_expect_float(&reader); }
     void operator()(double& out) { out = mpack_expect_double(&reader); }
 
+    // Should we use the generic mpack_expect_int here to make it more flexible?
     void operator()(std::uint8_t& out) { out = mpack_expect_u8(&reader); }
     void operator()(std::uint16_t& out) { out = mpack_expect_u16(&reader); }
     void operator()(std::uint32_t& out) { out = mpack_expect_u32(&reader); }
@@ -48,22 +60,22 @@ struct ReadVisitor {
     void operator()(std::int32_t& out) { out = mpack_expect_i32(&reader); }
     void operator()(std::int64_t& out) { out = mpack_expect_i64(&reader); }
 
-    void operator()(std::string& value) {
+    /** Decode any kind of string with support for custom allocators
+     * (e.g std::pmr::vector).
+     */
+    template <typename CharT, typename Traits, typename Allocator>
+    void operator()(std::basic_string<CharT, Traits, Allocator>& value) {
         uint32_t length = mpack_expect_str(&reader);
         value.resize(static_cast<std::size_t>(length));
         mpack_read_cstr(&reader, value.data(), 100, value.size());
         mpack_done_str(&reader);
     }
 
-    void operator()(std::pmr::string& value) {
-        uint32_t length = mpack_expect_str(&reader);
-        value.resize(static_cast<std::size_t>(length));
-        mpack_read_cstr(&reader, value.data(), 100, value.size());
-        mpack_done_str(&reader);
-    }
-
-    template <typename ElemT, typename AllocT>
-    void operator()(std::vector<ElemT, AllocT>& vec) {
+    /** Decode any kind of vector with support for custom allocators
+     * (e.g. std::pmr::string),
+     */
+    template <typename ElemT, typename Allocator>
+    void operator()(std::vector<ElemT, Allocator>& vec) {
         std::size_t count = mpack_expect_array_max(&reader, 100);
         vec.resize(count);
         for (std::size_t i{0}; i < count; ++i) {
@@ -72,6 +84,7 @@ struct ReadVisitor {
         mpack_done_array(&reader);
     }
 
+    /** Decode a pair from a fixed length array, two element, MessagePack array. */
     template <typename FirstT, typename SecondT>
     void operator()(std::pair<FirstT, SecondT>& pair) {
         mpack_expect_array_match(&reader, 2);
@@ -98,7 +111,7 @@ struct ReadVisitor {
         }
     }
     /**
-     * @brief Generic fallback template for deserializing objects from a
+     * Generic fallback template for deserializing objects from a
      * MessagePack reader.
      *
      * For most generic template, when no specialization is found for the type
@@ -121,6 +134,12 @@ struct ReadVisitor {
 
 }  // namespace internal
 
+/** Generic key-value decoder for 'simple' types.
+ *
+ * For 'complex' types use the corresponding specialized version:
+ *   - `std::optional`: `ReadOptionalField`
+ *   - Extension types: `ReadExtField`
+ */
 template <typename T>
 void ReadField(mpack_reader_t& reader, const char* key, T&& value) {
     mpack_expect_cstr_match(&reader, key);
@@ -153,6 +172,11 @@ inline std::uint8_t GetFixStrLength(const char c) {
 }
 }  // namespace internal
 
+/** Decode optional fields.
+ *
+ * @note: currently the maximum length for the key string is 31 bytes,
+ * because it is hardcoded to the the MesssagePack type 'fixstr'.
+ */
 template <typename T>
 void ReadOptionalField(mpack_reader_t& reader, const char* key, T&& value) {
     value = std::nullopt;

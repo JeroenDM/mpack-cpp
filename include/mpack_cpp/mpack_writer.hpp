@@ -4,7 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <string>
-#include <memory_resource>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -14,6 +13,12 @@
 namespace mpack_cpp {
 namespace internal {
 
+/** Main type selection visitor to encode values.
+ *
+ * In contrast other MessagePack encoders, integers are written to fixed int types based
+ * on the C++ type, not based on there value. This can result in larger message size.
+ *
+ */
 struct WriteVisitor {
     mpack_writer_t& writer;
 
@@ -37,7 +42,8 @@ struct WriteVisitor {
                          static_cast<std::uint32_t>(value.size()));
     }
 
-    void operator()(const std::pmr::string& value) {
+    template <typename CharT, typename Traits, typename Allocator>
+    void operator()(const std::basic_string<CharT, Traits, Allocator>& value) {
         mpack_write_utf8(&writer, value.c_str(),
                          static_cast<std::uint32_t>(value.size()));
     }
