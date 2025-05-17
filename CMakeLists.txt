@@ -56,6 +56,11 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_libraries(mpack_cpp INTERFACE mpack Boost::preprocessor)
 
+###############################################################################
+# Demos
+###############################################################################
+add_executable(node_api demos/node_api.cpp)
+target_link_libraries(node_api PRIVATE mpack_cpp)
 
 ###############################################################################
 # Tests 
