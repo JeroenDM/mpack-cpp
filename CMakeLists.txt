@@ -67,6 +67,7 @@ if(MPACK_CPP_BUILD_TESTS)
         test_mpack_cpp
         mpack_cpp
         GTest::gtest_main
+        GTest::gmock
     )
 
     include(GoogleTest)
