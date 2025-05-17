@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <memory_resource>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -36,8 +37,13 @@ struct WriteVisitor {
                          static_cast<std::uint32_t>(value.size()));
     }
 
-    template <typename ElemT>
-    void operator()(const std::vector<ElemT>& vec) {
+    void operator()(const std::pmr::string& value) {
+        mpack_write_utf8(&writer, value.c_str(),
+                         static_cast<std::uint32_t>(value.size()));
+    }
+
+    template <typename ElemT, typename AllocT>
+    void operator()(const std::vector<ElemT, AllocT>& vec) {
         mpack_start_array(&writer, static_cast<std::uint32_t>(vec.size()));
         for (const auto& elem : vec) {
             // Recursively process each element in the vector.

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
+#include <memory_resource>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -54,8 +55,15 @@ struct ReadVisitor {
         mpack_done_str(&reader);
     }
 
-    template <typename ElemT>
-    void operator()(std::vector<ElemT>& vec) {
+    void operator()(std::pmr::string& value) {
+        uint32_t length = mpack_expect_str(&reader);
+        value.resize(static_cast<std::size_t>(length));
+        mpack_read_cstr(&reader, value.data(), 100, value.size());
+        mpack_done_str(&reader);
+    }
+
+    template <typename ElemT, typename AllocT>
+    void operator()(std::vector<ElemT, AllocT>& vec) {
         std::size_t count = mpack_expect_array_max(&reader, 100);
         vec.resize(count);
         for (std::size_t i{0}; i < count; ++i) {
