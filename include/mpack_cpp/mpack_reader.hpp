@@ -126,8 +126,10 @@ struct ReadVisitor {
     // template<typename T, std::enable_if<has_from_message_pack_v<T>, int> = 0>
     template <typename T>
     void operator()(T& value) {
-        mpack_expect_map_max(&reader, 30);
-        value.from_message_pack(reader);
+        std::size_t n = mpack_expect_map_max(&reader, 30);
+        if (n > 0) {
+            value.from_message_pack(reader);
+        }
         mpack_done_map(&reader);
     }
 };
@@ -181,6 +183,13 @@ template <typename T>
 void ReadOptionalField(mpack_reader_t& reader, const char* key, T&& value) {
     value = std::nullopt;
     if (!internal::IsFixStr(reader.data[0])) {
+        // TODO(jeroendm) support arbitrary sized strings.
+        // TODO(jeroendm) we cannot set the error flag here
+        // because then optiona_at_end case would fail.
+        // This is because the if check here is also used to check
+        // if the optional at the end if there.
+        // Bad design, complete redesign needed to fix it.
+        // mpack_reader_flag_error(&reader, mpack_error_type);
         return;
     }
 

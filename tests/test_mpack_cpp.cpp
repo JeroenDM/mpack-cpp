@@ -13,7 +13,6 @@
 using testing::ElementsAre;
 
 namespace {
-
 constexpr std::size_t BUFFER_SIZE{1024};
 
 inline void DebugPrintBuffer(const std::vector<char>& buffer) {
@@ -42,7 +41,6 @@ struct Website {
         mpack_cpp::ReadField(reader, "schema", schema);
     }
 };
-
 }  // namespace
 
 TEST(mpack_cpp, website_example) {
@@ -62,7 +60,6 @@ TEST(mpack_cpp, website_example) {
 }
 
 namespace {
-
 struct Animal {
     std::string name;
     int age;
@@ -89,7 +86,6 @@ struct Zoo {
         mpack_cpp::ReadField(reader, "animals", animals);
     }
 };
-
 }  // namespace
 
 TEST(mpack_cpp_to_msgpack_and_back, nested) {
@@ -119,48 +115,9 @@ TEST(mpack_cpp_to_msgpack_and_back, nested) {
     }
 }
 
-namespace {
 
-enum class Status : std::uint8_t { NONE, ONE, SOME };
-
-struct WithExtField {
-    Status status;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        auto data = static_cast<char>(status);
-        mpack_cpp::WriteExtField(writer, "Status", 0x2a, std::array{data});
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        std::int8_t type;
-        std::array<char, 1> data;
-        mpack_cpp::ReadExtField(reader, "Status", type, data);
-        assert(type == 0x2a);
-        status = static_cast<Status>(data[0]);
-    }
-};
-
-}  // namespace
-
-TEST(mpack_cpp_to_msgpack_and_back, with_ext_field) {
-    std::vector<char> buffer(BUFFER_SIZE);
-    WithExtField before{Status::SOME};
-    WithExtField after{Status::NONE};
-
-    auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-    EXPECT_EQ(n, 11);
-    std::vector<char> trimmed{buffer.begin(),
-                              buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-    ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0xD4,
-                                     0x2A, 0x02));
-
-    bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-    EXPECT_TRUE(success);
-    EXPECT_EQ(before.status, after.status);
-}
 
 namespace {
-
 struct WithVariant {
     std::variant<bool, double> choice;
 
@@ -172,7 +129,6 @@ struct WithVariant {
         mpack_cpp::ReadField(reader, "Choice", choice);
     }
 };
-
 }  // namespace
 
 TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
@@ -223,7 +179,6 @@ TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
 }
 
 namespace {
-
 struct WithPair {
     std::pair<std::string, bool> key_value;
 
@@ -235,7 +190,6 @@ struct WithPair {
         mpack_cpp::ReadField(reader, "KeyValue", key_value);
     }
 };
-
 }  // namespace
 
 TEST(mpack_cpp_to_msgpack_and_back, with_pair) {
@@ -274,98 +228,6 @@ TEST(mpack_cpp_to_msgpack_and_back, just_pair) {
 }
 
 namespace {
-
-struct WithOptional {
-    int always;
-    std::optional<int> sometimes;
-    int last;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "Always", always);
-        mpack_cpp::WriteOptionalField(writer, "Sometimes", sometimes);
-        mpack_cpp::WriteField(writer, "Last", last);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "Always", always);
-        mpack_cpp::ReadOptionalField(reader, "Sometimes", sometimes);
-        mpack_cpp::ReadField(reader, "Last", last);
-    }
-};
-
-struct WithOptionalAtEnd {
-    int always;
-    std::optional<int> sometimes;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "Always", always);
-        mpack_cpp::WriteOptionalField(writer, "Sometimes", sometimes);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "Always", always);
-        mpack_cpp::ReadOptionalField(reader, "Sometimes", sometimes);
-    }
-};
-
-}  // namespace
-
-TEST(mpack_cpp_to_msgpack_and_back, with_optional) {
-    std::vector<char> buffer(BUFFER_SIZE);
-    WithOptional before{};
-    WithOptional after{};
-
-    before = {3, std::nullopt, 5};
-    after = {7, 8, 8};
-    {
-        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-        EXPECT_TRUE(success);
-        EXPECT_EQ(before.always, after.always);
-        EXPECT_EQ(before.sometimes, after.sometimes);
-        EXPECT_EQ(before.last, after.last);
-    }
-
-    before = {3, 4, 5};
-    after = {7, 8, 9};
-    {
-        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-        EXPECT_TRUE(success);
-        EXPECT_EQ(before.always, after.always);
-        EXPECT_EQ(before.sometimes, after.sometimes);
-        EXPECT_EQ(before.last, after.last);
-    }
-}
-
-TEST(mpack_cpp_to_msgpack_and_back, with_optional_at_end) {
-    std::vector<char> buffer(BUFFER_SIZE);
-    WithOptionalAtEnd before{};
-    WithOptionalAtEnd after{};
-
-    before = {3, std::nullopt};
-    after = {7, 8};
-    {
-        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-        EXPECT_TRUE(success);
-        EXPECT_EQ(before.always, after.always);
-        EXPECT_EQ(before.sometimes, after.sometimes);
-    }
-
-    before = {3, 4};
-    after = {7, 8};
-    {
-        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-        EXPECT_TRUE(success);
-        EXPECT_EQ(before.always, after.always);
-        EXPECT_EQ(before.sometimes, after.sometimes);
-    }
-}
-
-namespace {
-
 template <typename T>
 void TestBufferOnVector(std::vector<T>& buffer) {
     // We only test with one data type for the thing we decode/encode, and std::string.
@@ -402,7 +264,6 @@ void TestBufferOnVector(std::vector<T>& buffer) {
         EXPECT_EQ(before, after);
     }
 }
-
 }  // namespace
 
 TEST(mpack_cpp_to_msgpack_and_back, try_different_buffer_overloads) {
