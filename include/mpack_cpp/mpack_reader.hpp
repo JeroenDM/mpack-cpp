@@ -184,7 +184,12 @@ void ReadOptionalField(mpack_reader_t& reader, const char* key, T&& value) {
     value = std::nullopt;
     if (!internal::IsFixStr(reader.data[0])) {
         // TODO(jeroendm) support arbitrary sized strings.
-        mpack_reader_flag_error(&reader, mpack_error_type);
+        // TODO(jeroendm) we cannot set the error flag here
+        // because then optiona_at_end case would fail.
+        // This is because the if check here is also used to check
+        // if the optional at the end if there.
+        // Bad design, complete redesign needed to fix it.
+        // mpack_reader_flag_error(&reader, mpack_error_type);
         return;
     }
 
