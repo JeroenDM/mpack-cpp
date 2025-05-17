@@ -62,6 +62,7 @@ if(MPACK_CPP_BUILD_TESTS)
     add_executable(
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
+        tests/test_nested_struct.cpp
     )
     target_link_libraries(
         test_mpack_cpp
