@@ -84,6 +84,7 @@ if(MPACK_CPP_BUILD_TESTS)
     add_executable(
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
+        tests/test_expect_reader.cpp
         tests/test_nested_struct.cpp
         tests/test_custom_allocator.cpp
         tests/test_optional.cpp
