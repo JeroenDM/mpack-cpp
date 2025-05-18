@@ -40,6 +40,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(mpack PUBLIC MPACK_DEBUG=1)
 endif()
 
+FetchContent_Declare(
+  boost_preprocessor
+  GIT_REPOSITORY https://github.com/boostorg/preprocessor.git 
+)
+FetchContent_MakeAvailable(boost_preprocessor)
 
 ###############################################################################
 # Define mpack_cpp as a header only library. 
@@ -49,7 +54,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(mpack_cpp INTERFACE mpack)
+target_link_libraries(mpack_cpp INTERFACE mpack Boost::preprocessor)
 
 
 ###############################################################################
@@ -65,6 +70,8 @@ if(MPACK_CPP_BUILD_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
+
+
 
     include(CTest)
     enable_testing()

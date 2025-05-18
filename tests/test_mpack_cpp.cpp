@@ -9,9 +9,11 @@
 #include "gtest/gtest.h"
 #include "mpack_cpp/mpack_reader.hpp"
 #include "mpack_cpp/mpack_writer.hpp"
+#include "mpack_cpp/mpack_macros.hpp"
 
 using testing::ElementsAre;
 
+// Use anonymous namespace so other tests can reuse some of the names defined here.
 namespace {
 constexpr std::size_t BUFFER_SIZE{1024};
 
@@ -30,17 +32,9 @@ inline void DebugPrintBuffer(const std::vector<char>& buffer) {
 struct Website {
     bool compact;
     std::uint8_t schema;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "compact", compact);
-        mpack_cpp::WriteField(writer, "schema", schema);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "compact", compact);
-        mpack_cpp::ReadField(reader, "schema", schema);
-    }
+    MPACK_CPP_DEFINE(Website, compact, schema);
 };
+
 }  // namespace
 
 TEST(mpack_cpp, website_example) {
@@ -63,28 +57,12 @@ namespace {
 struct Animal {
     std::string name;
     int age;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "name", name);
-        mpack_cpp::WriteField(writer, "age", age);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "name", name);
-        mpack_cpp::ReadField(reader, "age", age);
-    }
+    MPACK_CPP_DEFINE(Animal, name, age)
 };
 
 struct Zoo {
     std::vector<Animal> animals;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "animals", animals);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "animals", animals);
-    }
+    MPACK_CPP_DEFINE(Zoo, animals)
 };
 }  // namespace
 
@@ -115,19 +93,10 @@ TEST(mpack_cpp_to_msgpack_and_back, nested) {
     }
 }
 
-
-
 namespace {
 struct WithVariant {
     std::variant<bool, double> choice;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "Choice", choice);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "Choice", choice);
-    }
+    MPACK_CPP_DEFINE(WithVariant, choice)
 };
 }  // namespace
 
@@ -140,7 +109,7 @@ TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
         EXPECT_EQ(n, 9);
         std::vector<char> trimmed{buffer.begin(),
                                   buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'C', 'h', 'o', 'i', 'c', 'e', 0xC2));
+        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'c', 'h', 'o', 'i', 'c', 'e', 0xC2));
 
         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
         EXPECT_TRUE(success);
@@ -154,7 +123,7 @@ TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
         EXPECT_EQ(n, 9);
         std::vector<char> trimmed{buffer.begin(),
                                   buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'C', 'h', 'o', 'i', 'c', 'e', 0xC3));
+        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'c', 'h', 'o', 'i', 'c', 'e', 0xC3));
 
         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
         EXPECT_TRUE(success);
@@ -168,7 +137,7 @@ TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
         EXPECT_EQ(n, 17);
         std::vector<char> trimmed{buffer.begin(),
                                   buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'C', 'h', 'o', 'i', 'c', 'e', 0xCB,
+        ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA6, 'c', 'h', 'o', 'i', 'c', 'e', 0xCB,
                                          0x40, 0x09, 0x1E, 0xB8, 0x51, 0xEB, 0x85, 0x1F));
 
         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
@@ -181,14 +150,7 @@ TEST(mpack_cpp_to_msgpack_and_back, with_variant) {
 namespace {
 struct WithPair {
     std::pair<std::string, bool> key_value;
-
-    void to_message_pack(mpack_writer_t& writer) const {
-        mpack_cpp::WriteField(writer, "KeyValue", key_value);
-    }
-
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "KeyValue", key_value);
-    }
+    MPACK_CPP_DEFINE(WithPair, key_value)
 };
 }  // namespace
 
@@ -198,10 +160,10 @@ TEST(mpack_cpp_to_msgpack_and_back, with_pair) {
     WithPair after{{"wrong", true}};
 
     auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-    EXPECT_EQ(n, 19);
+    EXPECT_EQ(n, 20);
     std::vector<char> trimmed{buffer.begin(),
                               buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-    ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA8, 'K', 'e', 'y', 'V', 'a', 'l', 'u', 'e',
+    ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA9, 'k', 'e', 'y', '_', 'v', 'a', 'l', 'u', 'e',
                                      0x92, 0xA6, 's', 'i', 'g', 'n', 'a', 'l', 0xC2));
 
     bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
