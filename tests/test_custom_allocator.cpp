@@ -21,9 +21,9 @@ struct Animal {
 
     Animal(std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
         : name(alloc), age{} {}
-    Animal(std::string_view name, int age,
+    Animal(std::string_view name_, int age_,
            std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
-        : name(name, alloc), age{age} {}
+        : name(name_, alloc), age{age_} {}
 
     void to_message_pack(mpack_writer_t& writer) const {
         mpack_cpp::WriteField(writer, "name", name);
@@ -41,9 +41,9 @@ struct Zoo {
 
     Zoo(std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
         : animals(alloc) {}
-    Zoo(std::initializer_list<Animal> animals,
+    Zoo(std::initializer_list<Animal> animals_,
         std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
-        : animals(animals, alloc) {}
+        : animals(animals_, alloc) {}
 
     void to_message_pack(mpack_writer_t& writer) const {
         mpack_cpp::WriteField(writer, "animals", animals);
