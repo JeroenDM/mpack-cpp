@@ -1,6 +1,7 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <type_traits>
 
 #include "mpack.h"
 #include "mpack_cpp/mpack_writer.hpp"
@@ -39,6 +40,39 @@ struct ComplexData {
     }
 };
 
+struct TreeVisitor {
+mpack_node_t node;
+
+template<typename T>
+T operator()() {
+    return T{};
+}
+
+template<>
+bool operator()() {
+    return mpack_node_bool(node);
+}
+
+template<>
+std::uint64_t operator()() {
+    return mpack_node_bool(node);
+}
+
+};
+
+template<typename T>
+T ReadField(mpack_node_t node, const char* key){
+    auto value_node = mpack_node_map_cstr(node, key);
+    if constexpr(std::is_same_v<T, bool>) {
+        return mpack_node_bool(value_node);
+    } else if constexpr(std::is_same_v<T, std::uint64_t>) {
+        return mpack_node_u64(value_node);
+    } else if constexpr(std::is_same_v<T, std::string>) {
+
+    }
+    return T{};
+}
+
 int main() {
     std::vector<char> buffer(BUFFER_SIZE);
     ComplexData before{
@@ -76,7 +110,11 @@ int main() {
 
     std::string name(30, '\0');
     mpack_node_copy_cstr(mpack_node_map_cstr(root, "Name"), name.data(), name.size());
-    auto t = mpack_node_u64(mpack_node_map_cstr(root, "Time"));
+    name.resize(std::strlen(name.data()));
+
+    // auto t = mpack_node_u64(mpack_node_map_cstr(root, "Time"));
+    auto t = ReadField<std::uint64_t>(root, "Time");
+
     auto n2 = mpack_node_map_cstr_optional(root, "NotInData");
     assert(mpack_node_type(n2) == mpack_type_missing);
     std::cout << "name: " << name.c_str() << "\ntime: " << t << std::endl;
@@ -99,14 +137,16 @@ int main() {
 
             auto first = mpack_node_array_at(el, 0);
             mpack_node_copy_cstr(first, s_name.data(), s_name.size());
+            s_name.resize(std::strlen(s_name.data()));
 
             auto second = mpack_node_array_at(el, 1);
             if (mpack_node_type(second) == mpack_type_bool) {
                 auto b = mpack_node_bool(second) ? "true" : "false";
-                std::cout << "\t" << j << ": " << s_name.c_str() << ", " << b << std::endl;
+                std::cout << "size: " << s_name.size() << std::endl;
+                std::cout << "\t" << j << ": " << s_name << ", " << b << std::endl;
             } else if (mpack_node_type(second) == mpack_type_double) {
                 auto d = mpack_node_double(second);
-                std::cout << "\t" << j << ": " << s_name.c_str() << ", " << d << std::endl;
+                std::cout << "\t" << j << ": " << s_name << ", " << d << std::endl;
             }
 
         }
