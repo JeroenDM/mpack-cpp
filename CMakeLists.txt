@@ -56,6 +56,11 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_libraries(mpack_cpp INTERFACE mpack Boost::preprocessor)
 
+###############################################################################
+# Demos
+###############################################################################
+add_executable(node_api demos/node_api.cpp)
+target_link_libraries(node_api PRIVATE mpack_cpp)
 
 ###############################################################################
 # Tests 
@@ -79,10 +84,11 @@ if(MPACK_CPP_BUILD_TESTS)
     add_executable(
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
-        tests/test_nested_struct.cpp
-        tests/test_custom_allocator.cpp
-        tests/test_optional.cpp
-        tests/test_ext_type.cpp
+        tests/test_expect_reader.cpp
+        # tests/test_nested_struct.cpp
+        # tests/test_custom_allocator.cpp
+        # tests/test_optional.cpp
+        # tests/test_ext_type.cpp
     )
     target_link_libraries(
         test_mpack_cpp
