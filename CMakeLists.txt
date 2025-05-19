@@ -57,6 +57,10 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(mpack_cpp INTERFACE mpack Boost::preprocessor)
 
 
+add_executable(function_stack demos/function_stack.cpp)
+target_link_libraries(function_stack PRIVATE mpack_cpp)
+
+
 ###############################################################################
 # Tests 
 ###############################################################################
