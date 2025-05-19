@@ -20,7 +20,7 @@ struct Group {
         mpack_cpp::WriteField(writer, "Skills", skills);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& node) {
         mpack_cpp::ReadField(reader, "GroupName", name);
         mpack_cpp::ReadField(reader, "Skills", skills);
     }
