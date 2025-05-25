@@ -4,6 +4,7 @@
  */
 #include <array>
 #include <cassert>
+#include <cstring>  // strlen
 #include <iostream>
 #include <type_traits>
 
@@ -62,7 +63,7 @@ int main() {
     auto n = mpack_cpp::WriteToMsgPack(before, buffer);
 
     std::cout << "n: " << n << std::endl;
-    mpack_print(buffer.data(), n);
+    mpack_print_data_to_stdout(buffer.data(), n);
 
     std::array<mpack_node_data_t, 200> pool;
 
