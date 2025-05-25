@@ -63,7 +63,9 @@ int main() {
     auto n = mpack_cpp::WriteToMsgPack(before, buffer);
 
     std::cout << "n: " << n << std::endl;
+#ifndef MPACK_DEBUG
     mpack_print_data_to_stdout(buffer.data(), n);
+#endif
 
     std::array<mpack_node_data_t, 200> pool;
 
@@ -85,8 +87,10 @@ int main() {
 
     auto t = mpack_node_u64(mpack_node_map_cstr(root, "Time"));
 
+#ifndef MPACK_DEBUG
     auto n2 = mpack_node_map_cstr_optional(root, "NotInData");
     assert(mpack_node_type(n2) == mpack_type_missing);
+#endif
     std::cout << "name: " << name.c_str() << "\ntime: " << t << std::endl;
 
     auto groups = mpack_node_map_cstr(root, "Groups");
