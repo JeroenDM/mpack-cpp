@@ -38,8 +38,8 @@ struct WithExtField {
     }
 
     void from_message_pack(mpack_node_t& reader) {
-        std::int8_t type;
-        std::array<char, 1> data;
+        std::int8_t type{0};
+        std::array<char, 1> data{0};
         mpack_cpp::ReadExtField(reader, "Ext", type, data);
         if (type == 33) {
             ext = static_cast<Status>(data[0]);

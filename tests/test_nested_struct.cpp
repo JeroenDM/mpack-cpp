@@ -53,8 +53,8 @@ struct ComplexData {
         mpack_cpp::ReadField(reader, "Time", time);
         mpack_cpp::ReadField(reader, "Groups", groups);
 
-        std::int8_t type;
-        std::array<char, 1> data;
+        std::int8_t type{0};
+        std::array<char, 1> data{0};
         mpack_cpp::ReadExtField(reader, "Status", type, data);
         assert(type == 0x01);
         label = static_cast<Label>(data[0]);
