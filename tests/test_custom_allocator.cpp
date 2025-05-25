@@ -30,7 +30,7 @@ struct Animal {
         mpack_cpp::WriteField(writer, "age", age);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& reader) {
         mpack_cpp::ReadField(reader, "name", name);
         mpack_cpp::ReadField(reader, "age", age);
     }
@@ -49,7 +49,7 @@ struct Zoo {
         mpack_cpp::WriteField(writer, "animals", animals);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& reader) {
         mpack_cpp::ReadField(reader, "animals", animals);
     }
 };

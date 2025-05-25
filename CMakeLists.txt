@@ -85,8 +85,8 @@ if(MPACK_CPP_BUILD_TESTS)
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
         tests/test_expect_reader.cpp
-        # tests/test_nested_struct.cpp
-        # tests/test_custom_allocator.cpp
+        tests/test_nested_struct.cpp
+        tests/test_custom_allocator.cpp
         tests/test_optional.cpp
         tests/test_ext_type.cpp
     )
