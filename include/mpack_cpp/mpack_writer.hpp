@@ -84,23 +84,29 @@ struct WriteVisitor {
 
 }  // namespace internal
 
-/** @brief Add a basic generic field to the given mpack writer. */
+/** Context (state) related to the mpack data currently being encoded.
+ *
+ * Type alias to hide internal mpack library and make future refactors easier.
+ * */
+using WriteCtx = mpack_writer_t;
+
+/** Add a basic generic field to the given mpack writer. */
 template <typename T>
-void WriteField(mpack_writer_t& writer, const char* key, T&& value) {
+void WriteField(WriteCtx& writer, const char* key, T&& value) {
     mpack_write_cstr(&writer, key);
     internal::WriteVisitor{writer}(std::forward<T>(value));
 }
 
 template <typename T>
-void WriteOptionalField(mpack_writer_t& writer, const char* key, T&& value) {
+void WriteOptionalField(WriteCtx& writer, const char* key, T&& value) {
     if (value.has_value()) {
         WriteField(writer, key, value.value());
     }
 }
 
-/** @brief Add an extension type field to the given mpack writer. */
+/** Add an extension type field to the given mpack writer. */
 template <std::size_t N>
-void WriteExtField(mpack_writer_t& writer, const char* key, std::int8_t type,
+void WriteExtField(WriteCtx& writer, const char* key, std::int8_t type,
                    const std::array<char, N>& data) {
     mpack_write_cstr(&writer, key);
     mpack_start_ext(&writer, type, N);

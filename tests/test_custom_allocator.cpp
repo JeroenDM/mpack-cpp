@@ -25,12 +25,12 @@ struct Animal {
            std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
         : name(name_, alloc), age{age_} {}
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "name", name);
         mpack_cpp::WriteField(writer, "age", age);
     }
 
-    void from_message_pack(mpack_node_t& reader) {
+    void from_message_pack(mpack_cpp::ReadCtx& reader) {
         mpack_cpp::ReadField(reader, "name", name);
         mpack_cpp::ReadField(reader, "age", age);
     }
@@ -45,11 +45,11 @@ struct Zoo {
         std::pmr::memory_resource* alloc = std::pmr::get_default_resource())
         : animals(animals_, alloc) {}
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "animals", animals);
     }
 
-    void from_message_pack(mpack_node_t& reader) {
+    void from_message_pack(mpack_cpp::ReadCtx& reader) {
         mpack_cpp::ReadField(reader, "animals", animals);
     }
 };
