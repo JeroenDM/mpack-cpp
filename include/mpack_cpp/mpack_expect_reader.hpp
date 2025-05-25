@@ -136,6 +136,10 @@ struct ReadVisitor {
 
 }  // namespace internal
 
+/** Context (state) related to the mpack data currently being decoded.
+ *
+ * Type alias to hide internal mpack library and make future refactors easier.
+ * */
 using ReadCtx = mpack_reader_t;
 
 /** Generic key-value decoder for 'simple' types.
