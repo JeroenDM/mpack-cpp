@@ -8,8 +8,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "mpack_cpp/mpack_expect_reader.hpp"
-#include "mpack_cpp/mpack_writer.hpp"
 #include "mpack_cpp/mpack_macros.hpp"
+#include "mpack_cpp/mpack_writer.hpp"
 
 using testing::ElementsAre;
 
@@ -163,8 +163,9 @@ TEST(mpack_expect_reader, with_pair) {
     EXPECT_EQ(n, 20);
     std::vector<char> trimmed{buffer.begin(),
                               buffer.begin() + static_cast<std::ptrdiff_t>(n)};
-    ASSERT_THAT(trimmed, ElementsAre(0x81, 0xA9, 'k', 'e', 'y', '_', 'v', 'a', 'l', 'u', 'e',
-                                     0x92, 0xA6, 's', 'i', 'g', 'n', 'a', 'l', 0xC2));
+    ASSERT_THAT(trimmed,
+                ElementsAre(0x81, 0xA9, 'k', 'e', 'y', '_', 'v', 'a', 'l', 'u', 'e', 0x92,
+                            0xA6, 's', 'i', 'g', 'n', 'a', 'l', 0xC2));
 
     bool success = mpack_cpp::expect::ReadFromMsgPack(after, buffer, n);
     EXPECT_TRUE(success);
