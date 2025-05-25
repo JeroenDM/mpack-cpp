@@ -18,7 +18,7 @@
         BOOST_PP_SEQ_FOR_EACH(MPACK_WRITE_FIELD_OP, writer,          \
                               BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     }                                                                \
-    void from_message_pack(mpack_node_t& node) {                     \
+    void from_message_pack(mpack_cpp::ReadCtx& node) {               \
         BOOST_PP_SEQ_FOR_EACH(MPACK_READ_FIELD_OP, node,             \
                               BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     }
@@ -28,7 +28,7 @@
         BOOST_PP_SEQ_FOR_EACH(MPACK_WRITE_FIELD_OP, writer,          \
                               BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     }                                                                \
-    void from_message_pack(mpack_reader_t& reader) {                 \
+    void from_message_pack(mpack_cpp::expect::ReadCtx& reader) {     \
         BOOST_PP_SEQ_FOR_EACH(MPACK_EXPECT_READ_FIELD_OP, reader,    \
                               BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     }
