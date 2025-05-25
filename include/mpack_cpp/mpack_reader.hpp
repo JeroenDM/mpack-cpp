@@ -156,7 +156,7 @@ void ReadExtField(mpack_node_t& node, const char* key, std::int8_t& type,
     type = mpack_node_exttype(ext_node);
     auto n = mpack_node_data_len(ext_node);
     assert(n == data.size());
-    std::copy_n(mpack_node_data(ext_node), n, data.begin());
+    std::copy_n(mpack_node_data(ext_node), data.size(), data.begin());
 }
 
 /** Decode optional fields.  */
