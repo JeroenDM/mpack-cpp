@@ -136,6 +136,12 @@ struct ReadVisitor {
 
 }  // namespace internal
 
+/** Context (state) related to the mpack data currently being decoded.
+ *
+ * Type alias to hide internal mpack library and make future refactors easier.
+ * */
+using ReadCtx = mpack_reader_t;
+
 /** Generic key-value decoder for 'simple' types.
  *
  * For 'complex' types use the corresponding specialized version:
@@ -143,13 +149,13 @@ struct ReadVisitor {
  *   - Extension types: `ReadExtField`
  */
 template <typename T>
-void ReadField(mpack_reader_t& reader, const char* key, T&& value) {
+void ReadField(ReadCtx& reader, const char* key, T&& value) {
     mpack_expect_cstr_match(&reader, key);
     internal::ReadVisitor{reader}(std::forward<T>(value));
 }
 
 template <std::size_t N>
-void ReadExtField(mpack_reader_t& reader, const char* key, std::int8_t& type,
+void ReadExtField(ReadCtx& reader, const char* key, std::int8_t& type,
                   std::array<char, N>& data) {
     mpack_expect_cstr_match(&reader, key);
     auto n =
@@ -180,7 +186,7 @@ inline std::uint8_t GetFixStrLength(const char c) {
  * because it is hardcoded to the the MesssagePack type 'fixstr'.
  */
 template <typename T>
-void ReadOptionalField(mpack_reader_t& reader, const char* key, T&& value) {
+void ReadOptionalField(ReadCtx& reader, const char* key, T&& value) {
     value = std::nullopt;
     if (!internal::IsFixStr(reader.data[0])) {
         // TODO(jeroendm) support arbitrary sized strings.

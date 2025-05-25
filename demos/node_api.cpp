@@ -17,7 +17,7 @@ struct Group {
     std::string name;
     std::vector<std::pair<std::string, std::variant<bool, double>>> skills;
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "GroupName", name);
         mpack_cpp::WriteField(writer, "Skills", skills);
     }
@@ -35,7 +35,7 @@ struct ComplexData {
     std::vector<Group> groups;
     Label label;
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "Name", name);
         mpack_cpp::WriteField(writer, "Time", time);
         mpack_cpp::WriteField(writer, "Groups", groups);

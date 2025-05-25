@@ -137,6 +137,12 @@ struct ReadVisitor {
 
 }  // namespace internal
 
+/** Context (state) related to the mpack data currently being decoded.
+ *
+ * Type alias to hide internal mpack library and make future refactors easier.
+ * */
+using ReadCtx = mpack_node_t;
+
 /** Generic key-value decoder for 'simple' types.
  *
  * For 'complex' types use the corresponding specialized version:
@@ -144,13 +150,13 @@ struct ReadVisitor {
  *   - Extension types: `ReadExtField`
  */
 template <typename T>
-void ReadField(mpack_node_t node, const char* key, T&& out) {
+void ReadField(ReadCtx node, const char* key, T&& out) {
     auto value_node = mpack_node_map_cstr(node, key);
     internal::ReadVisitor{value_node}(std::forward<T>(out));
 }
 
 template <std::size_t N>
-void ReadExtField(mpack_node_t& node, const char* key, std::int8_t& type,
+void ReadExtField(ReadCtx& node, const char* key, std::int8_t& type,
                   std::array<char, N>& data) {
     auto ext_node = mpack_node_map_cstr(node, key);
     type = mpack_node_exttype(ext_node);
@@ -165,7 +171,7 @@ void ReadExtField(mpack_node_t& node, const char* key, std::int8_t& type,
 
 /** Decode optional fields.  */
 template <typename T>
-void ReadOptionalField(mpack_node_t& node, const char* key, T&& out) {
+void ReadOptionalField(ReadCtx& node, const char* key, T&& out) {
     if (mpack_node_map_contains_cstr(node, key)) {
         out.emplace();
         auto opt_node = mpack_node_map_cstr(node, key);
