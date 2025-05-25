@@ -25,7 +25,7 @@ fetchcontent_declare(
   URL_HASH MD5=10e7377a58e033f645386ee3ffd0879a
 )
 fetchcontent_makeavailable(mpack)
-add_library(mpack SHARED  ${mpack_SOURCE_DIR}/src/mpack/mpack.c)
+add_library(mpack STATIC  ${mpack_SOURCE_DIR}/src/mpack/mpack.c)
 set_target_properties(mpack PROPERTIES LANGUAGE CXX)
 set_target_properties(mpack PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(mpack PUBLIC
