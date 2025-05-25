@@ -88,7 +88,7 @@ if(MPACK_CPP_BUILD_TESTS)
         # tests/test_nested_struct.cpp
         # tests/test_custom_allocator.cpp
         # tests/test_optional.cpp
-        # tests/test_ext_type.cpp
+        tests/test_ext_type.cpp
     )
     target_link_libraries(
         test_mpack_cpp

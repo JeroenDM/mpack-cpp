@@ -1,6 +1,7 @@
 #ifndef MPACK_CPP__MPACK_READER_HPP_
 #define MPACK_CPP__MPACK_READER_HPP_
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -148,31 +149,15 @@ void ReadField(mpack_node_t node, const char* key, T&& out) {
     internal::ReadVisitor{value_node}(std::forward<T>(out));
 }
 
-// template <std::size_t N>
-// void ReadExtField(mpack_reader_t& reader, const char* key, std::int8_t& type,
-//                   std::array<char, N>& data) {
-//     mpack_expect_cstr_match(&reader, key);
-//     auto n =
-//         mpack_expect_ext_max(&reader, &type, static_cast<std::uint32_t>(data.size()));
-//     if (n != data.size()) {
-//         mpack_reader_flag_error(&reader, mpack_error_data);
-//     } else {
-//         mpack_read_bytes(&reader, data.data(), data.size());
-//         mpack_done_ext(&reader);
-//     }
-// }
-
-// namespace internal {
-// inline bool IsFixStr(const char c) {
-//     // Check for pattern 101xxxxx.
-//     return (static_cast<std::uint8_t>(c) >> 5) == 5;
-// }
-
-// inline std::uint8_t GetFixStrLength(const char c) {
-//     // Extract last 5 bits as uint8.
-//     return static_cast<std::uint8_t>(c) & static_cast<uint8_t>(~0xe0);
-// }
-// }  // namespace internal
+template <std::size_t N>
+void ReadExtField(mpack_node_t& node, const char* key, std::int8_t& type,
+                  std::array<char, N>& data) {
+    auto ext_node = mpack_node_map_cstr(node, key);
+    type = mpack_node_exttype(ext_node);
+    auto n = mpack_node_data_len(ext_node);
+    assert(n == data.size());
+    std::copy_n(mpack_node_data(ext_node), n, data.begin());
+}
 
 // /** Decode optional fields.
 //  *
