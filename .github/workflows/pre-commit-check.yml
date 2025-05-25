@@ -1,0 +1,27 @@
+name: pre-commit check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install pipx and pre-commit
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pipx
+          pipx ensurepath
+          pipx install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files
