@@ -25,7 +25,7 @@ enum class Level : std::uint8_t { DEBUG, WARN, INFO };
 struct WithExtField {
     std::variant<Status, Level> ext;
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         if (std::holds_alternative<Status>(ext)) {
             auto data = static_cast<char>(std::get<Status>(ext));
             mpack_cpp::WriteExtField(writer, "Ext", 33, std::array{data});
@@ -37,7 +37,7 @@ struct WithExtField {
         }
     }
 
-    void from_message_pack(mpack_node_t& reader) {
+    void from_message_pack(mpack_cpp::ReadCtx& reader) {
         std::int8_t type{0};
         std::array<char, 1> data{0};
         mpack_cpp::ReadExtField(reader, "Ext", type, data);

@@ -16,12 +16,12 @@ struct Group {
     std::string name;
     std::vector<std::pair<std::string, std::variant<bool, double>>> skills;
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "GroupName", name);
         mpack_cpp::WriteField(writer, "Skills", skills);
     }
 
-    void from_message_pack(mpack_node_t& node) {
+    void from_message_pack(mpack_cpp::ReadCtx& node) {
         mpack_cpp::ReadField(node, "GroupName", name);
         mpack_cpp::ReadField(node, "Skills", skills);
     }
@@ -39,7 +39,7 @@ struct ComplexData {
     std::vector<Group> groups;
     Label label;
 
-    void to_message_pack(mpack_writer_t& writer) const {
+    void to_message_pack(mpack_cpp::WriteCtx& writer) const {
         mpack_cpp::WriteField(writer, "Name", name);
         mpack_cpp::WriteField(writer, "Time", time);
         mpack_cpp::WriteField(writer, "Groups", groups);
@@ -48,7 +48,7 @@ struct ComplexData {
         mpack_cpp::WriteExtField(writer, "Status", 0x01, std::array{data});
     }
 
-    void from_message_pack(mpack_node_t& reader) {
+    void from_message_pack(mpack_cpp::ReadCtx& reader) {
         mpack_cpp::ReadField(reader, "Name", name);
         mpack_cpp::ReadField(reader, "Time", time);
         mpack_cpp::ReadField(reader, "Groups", groups);
