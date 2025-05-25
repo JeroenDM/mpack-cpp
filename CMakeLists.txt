@@ -25,7 +25,7 @@ fetchcontent_declare(
   URL_HASH MD5=10e7377a58e033f645386ee3ffd0879a
 )
 fetchcontent_makeavailable(mpack)
-add_library(mpack SHARED  ${mpack_SOURCE_DIR}/src/mpack/mpack.c)
+add_library(mpack STATIC  ${mpack_SOURCE_DIR}/src/mpack/mpack.c)
 set_target_properties(mpack PROPERTIES LANGUAGE CXX)
 set_target_properties(mpack PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(mpack PUBLIC
@@ -56,6 +56,11 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_libraries(mpack_cpp INTERFACE mpack Boost::preprocessor)
 
+###############################################################################
+# Demos
+###############################################################################
+add_executable(node_api demos/node_api.cpp)
+target_link_libraries(node_api PRIVATE mpack_cpp)
 
 ###############################################################################
 # Tests 
@@ -79,6 +84,7 @@ if(MPACK_CPP_BUILD_TESTS)
     add_executable(
         test_mpack_cpp 
         tests/test_mpack_cpp.cpp
+        tests/test_expect_reader.cpp
         tests/test_nested_struct.cpp
         tests/test_custom_allocator.cpp
         tests/test_optional.cpp

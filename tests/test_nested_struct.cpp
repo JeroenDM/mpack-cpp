@@ -1,3 +1,4 @@
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <variant>
@@ -20,9 +21,9 @@ struct Group {
         mpack_cpp::WriteField(writer, "Skills", skills);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
-        mpack_cpp::ReadField(reader, "GroupName", name);
-        mpack_cpp::ReadField(reader, "Skills", skills);
+    void from_message_pack(mpack_node_t& node) {
+        mpack_cpp::ReadField(node, "GroupName", name);
+        mpack_cpp::ReadField(node, "Skills", skills);
     }
 };
 
@@ -47,13 +48,13 @@ struct ComplexData {
         mpack_cpp::WriteExtField(writer, "Status", 0x01, std::array{data});
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& reader) {
         mpack_cpp::ReadField(reader, "Name", name);
         mpack_cpp::ReadField(reader, "Time", time);
         mpack_cpp::ReadField(reader, "Groups", groups);
 
-        std::int8_t type;
-        std::array<char, 1> data;
+        std::int8_t type{0};
+        std::array<char, 1> data{0};
         mpack_cpp::ReadExtField(reader, "Status", type, data);
         assert(type == 0x01);
         label = static_cast<Label>(data[0]);
