@@ -23,7 +23,7 @@ struct WithOptional {
         mpack_cpp::WriteField(writer, "Last", last);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& reader) {
         mpack_cpp::ReadField(reader, "Always", always);
         mpack_cpp::ReadOptionalField(reader, "Sometimes", sometimes);
         mpack_cpp::ReadField(reader, "Last", last);
@@ -39,7 +39,7 @@ struct WithOptionalAtEnd {
         mpack_cpp::WriteOptionalField(writer, "Sometimes", sometimes);
     }
 
-    void from_message_pack(mpack_reader_t& reader) {
+    void from_message_pack(mpack_node_t& reader) {
         mpack_cpp::ReadField(reader, "Always", always);
         mpack_cpp::ReadOptionalField(reader, "Sometimes", sometimes);
     }
@@ -100,74 +100,74 @@ TEST(read_write_optional, with_optional_at_end) {
     }
 }
 
-// namespace {
-// struct OptionalOnlyMember {
-//     std::optional<int> short_name;
+namespace {
+struct OptionalOnlyMember {
+    std::optional<int> short_name;
 
-//     void to_message_pack(mpack_writer_t& writer) const {
-//         mpack_cpp::WriteOptionalField(writer, "long_name", short_name);
-//     }
+    void to_message_pack(mpack_writer_t& writer) const {
+        mpack_cpp::WriteOptionalField(writer, "long_name", short_name);
+    }
 
-//     void from_message_pack(mpack_reader_t& reader) {
-//         mpack_cpp::ReadOptionalField(reader, "long_name", short_name);
-//     }
-// };
-// }  // namespace
+    void from_message_pack(mpack_node_t& reader) {
+        mpack_cpp::ReadOptionalField(reader, "long_name", short_name);
+    }
+};
+}  // namespace
 
-// TEST(read_write_optional, option_field_only_member) {
-//     std::vector<char> buffer(BUFFER_SIZE);
-//     OptionalOnlyMember before{};
-//     OptionalOnlyMember after{};
+TEST(read_write_optional, option_field_only_member) {
+    std::vector<char> buffer(BUFFER_SIZE);
+    OptionalOnlyMember before{};
+    OptionalOnlyMember after{};
 
-//     before = {3};
-//     after = {0};
-//     {
-//         auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-//         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-//         EXPECT_TRUE(success);
-//         EXPECT_EQ(before.short_name, after.short_name);
-//     }
+    before = {3};
+    after = {0};
+    {
+        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
+        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
+        EXPECT_TRUE(success);
+        EXPECT_EQ(before.short_name, after.short_name);
+    }
 
-//     before = {std::nullopt};
-//     // after = {0}; // TODO(jeroendm) this does not work, we must initialize to
-//     // std::nullopt...
-//     after = {std::nullopt};
-//     {
-//         auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-//         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-//         EXPECT_TRUE(success);
-//         EXPECT_EQ(before.short_name, after.short_name);
-//     }
-// }
+    before = {std::nullopt};
+    // after = {0}; // TODO(jeroendm) this does not work, we must initialize to
+    // std::nullopt...
+    after = {std::nullopt};
+    {
+        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
+        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
+        EXPECT_TRUE(success);
+        EXPECT_EQ(before.short_name, after.short_name);
+    }
+}
 
-// namespace {
-// // A key of more than 31 bytes triggers the bug for #1.
-// constexpr const char k_long_name[] = "01234567890123456789012345678901";
+namespace {
+// A key of more than 31 bytes triggers the bug for #1.
+constexpr const char k_long_name[] = "01234567890123456789012345678901";
 
-// struct OptionalLargeName {
-//     std::optional<int> short_name;
+struct OptionalLargeName {
+    std::optional<int> short_name;
 
-//     void to_message_pack(mpack_writer_t& writer) const {
-//         mpack_cpp::WriteOptionalField(writer, k_long_name, short_name);
-//     }
+    void to_message_pack(mpack_writer_t& writer) const {
+        mpack_cpp::WriteOptionalField(writer, k_long_name, short_name);
+    }
 
-//     void from_message_pack(mpack_reader_t& reader) {
-//         mpack_cpp::ReadOptionalField(reader, k_long_name, short_name);
-//     }
-// };
-// }  // namespace
+    void from_message_pack(mpack_node_t& reader) {
+        mpack_cpp::ReadOptionalField(reader, k_long_name, short_name);
+    }
+};
+}  // namespace
 
-// TEST(read_write_optional, option_field_large_key) {
-//     std::vector<char> buffer(BUFFER_SIZE);
-//     OptionalLargeName before{};
-//     OptionalLargeName after{};
+TEST(read_write_optional, option_field_large_key) {
+    std::vector<char> buffer(BUFFER_SIZE);
+    OptionalLargeName before{};
+    OptionalLargeName after{};
 
-//     before = {3};
-//     after = {0};
-//     {
-//         auto n = mpack_cpp::WriteToMsgPack(before, buffer);
-//         bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
-//         EXPECT_FALSE(success);
-//         EXPECT_NE(before.short_name, after.short_name);
-//     }
-// }
+    before = {3};
+    after = {0};
+    {
+        auto n = mpack_cpp::WriteToMsgPack(before, buffer);
+        bool success = mpack_cpp::ReadFromMsgPack(after, buffer, n);
+        EXPECT_TRUE(success);
+        EXPECT_EQ(before.short_name, after.short_name);
+    }
+}

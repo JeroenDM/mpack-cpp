@@ -159,35 +159,17 @@ void ReadExtField(mpack_node_t& node, const char* key, std::int8_t& type,
     std::copy_n(mpack_node_data(ext_node), n, data.begin());
 }
 
-// /** Decode optional fields.
-//  *
-//  * @note: currently the maximum length for the key string is 31 bytes,
-//  * because it is hardcoded to the the MesssagePack type 'fixstr'.
-//  */
-// template <typename T>
-// void ReadOptionalField(mpack_reader_t& reader, const char* key, T&& value) {
-//     value = std::nullopt;
-//     if (!internal::IsFixStr(reader.data[0])) {
-//         // TODO(jeroendm) support arbitrary sized strings.
-//         // TODO(jeroendm) we cannot set the error flag here
-//         // because then optiona_at_end case would fail.
-//         // This is because the if check here is also used to check
-//         // if the optional at the end if there.
-//         // Bad design, complete redesign needed to fix it.
-//         // mpack_reader_flag_error(&reader, mpack_error_type);
-//         return;
-//     }
-
-//     auto length = internal::GetFixStrLength(reader.data[0]);
-//     const std::string key_s(key, strlen(key));
-//     const std::string next_key_s(reader.data + 1, length);
-//     if (key_s != next_key_s) {
-//         return;
-//     }
-
-//     value.emplace();
-//     ReadField(reader, key, value.value());
-// }
+/** Decode optional fields.  */
+template <typename T>
+void ReadOptionalField(mpack_node_t& node, const char* key, T&& out) {
+    if (mpack_node_map_contains_cstr(node, key)) {
+        out.emplace();
+        auto opt_node = mpack_node_map_cstr(node, key);
+        internal::ReadVisitor{opt_node}(out.value());
+    } else {
+        out = std::nullopt;
+    }
+}
 
 template <typename T>
 bool ReadFromMsgPack(T& data, const char* buffer_start, std::size_t msg_size) {
